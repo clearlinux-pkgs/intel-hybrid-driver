@@ -4,7 +4,7 @@
 #
 Name     : intel-hybrid-driver
 Version  : 1.0.2
-Release  : 1
+Release  : 2
 URL      : https://github.com/01org/intel-hybrid-driver/archive/1.0.2.tar.gz
 Source0  : https://github.com/01org/intel-hybrid-driver/archive/1.0.2.tar.gz
 Summary  : No detailed summary available
