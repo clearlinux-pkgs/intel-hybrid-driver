@@ -4,14 +4,16 @@
 #
 Name     : intel-hybrid-driver
 Version  : 1.0.2
-Release  : 8
-URL      : https://github.com/01org/intel-hybrid-driver/archive/1.0.2.tar.gz
-Source0  : https://github.com/01org/intel-hybrid-driver/archive/1.0.2.tar.gz
+Release  : 9
+URL      : https://github.com/intel/intel-hybrid-driver/archive/1.0.2.tar.gz
+Source0  : https://github.com/intel/intel-hybrid-driver/archive/1.0.2.tar.gz
 Summary  : No detailed summary available
 Group    : Development/Tools
 License  : Distributable MIT
-Requires: intel-hybrid-driver-lib
+Requires: intel-hybrid-driver-lib = %{version}-%{release}
+Requires: intel-hybrid-driver-license = %{version}-%{release}
 Requires: cmrt
+BuildRequires : cmrt
 BuildRequires : pkgconfig(egl)
 BuildRequires : pkgconfig(intel-gen4asm)
 BuildRequires : pkgconfig(libcmrt)
@@ -23,6 +25,7 @@ BuildRequires : pkgconfig(libva-wayland)
 BuildRequires : pkgconfig(libva-x11)
 BuildRequires : pkgconfig(wayland-client)
 Patch1: 0001-driver_init-load-libva-x11.so-for-any-ABI-version.patch
+Patch2: 0002-Fix-build-with-GCC-10.patch
 
 %description
 libva-intel-hybrid-driver
@@ -34,34 +37,56 @@ Please read the COPYING file available in this package.
 %package lib
 Summary: lib components for the intel-hybrid-driver package.
 Group: Libraries
+Requires: intel-hybrid-driver-license = %{version}-%{release}
 
 %description lib
 lib components for the intel-hybrid-driver package.
 
 
+%package license
+Summary: license components for the intel-hybrid-driver package.
+Group: Default
+
+%description license
+license components for the intel-hybrid-driver package.
+
+
 %prep
 %setup -q -n intel-hybrid-driver-1.0.2
+cd %{_builddir}/intel-hybrid-driver-1.0.2
 %patch1 -p1
+%patch2 -p1
 
 %build
 export http_proxy=http://127.0.0.1:9/
 export https_proxy=http://127.0.0.1:9/
 export no_proxy=localhost,127.0.0.1,0.0.0.0
-export LANG=C
-export SOURCE_DATE_EPOCH=1531789138
+export LANG=C.UTF-8
+export SOURCE_DATE_EPOCH=1604097857
+export GCC_IGNORE_WERROR=1
+export AR=gcc-ar
+export RANLIB=gcc-ranlib
+export NM=gcc-nm
+export CFLAGS="$CFLAGS -O3 -ffat-lto-objects -flto=4 "
+export FCFLAGS="$FFLAGS -O3 -ffat-lto-objects -flto=4 "
+export FFLAGS="$FFLAGS -O3 -ffat-lto-objects -flto=4 "
+export CXXFLAGS="$CXXFLAGS -O3 -ffat-lto-objects -flto=4 "
 %autogen --disable-static
 make  %{?_smp_mflags}
 
 %check
-export LANG=C
+export LANG=C.UTF-8
 export http_proxy=http://127.0.0.1:9/
 export https_proxy=http://127.0.0.1:9/
 export no_proxy=localhost,127.0.0.1,0.0.0.0
-make VERBOSE=1 V=1 %{?_smp_mflags} check
+make %{?_smp_mflags} check
 
 %install
-export SOURCE_DATE_EPOCH=1531789138
+export SOURCE_DATE_EPOCH=1604097857
 rm -rf %{buildroot}
+mkdir -p %{buildroot}/usr/share/package-licenses/intel-hybrid-driver
+cp %{_builddir}/intel-hybrid-driver-1.0.2/COPYING %{buildroot}/usr/share/package-licenses/intel-hybrid-driver/099b1aff1b937aad419a0cc7cfb474d2d74acf0b
+cp %{_builddir}/intel-hybrid-driver-1.0.2/debian.upstream/copyright %{buildroot}/usr/share/package-licenses/intel-hybrid-driver/475916abd46ba213e30897c2852f78600a2266cd
 %make_install
 
 %files
@@ -70,3 +95,8 @@ rm -rf %{buildroot}
 %files lib
 %defattr(-,root,root,-)
 /usr/lib64/dri/hybrid_drv_video.so
+
+%files license
+%defattr(0644,root,root,0755)
+/usr/share/package-licenses/intel-hybrid-driver/099b1aff1b937aad419a0cc7cfb474d2d74acf0b
+/usr/share/package-licenses/intel-hybrid-driver/475916abd46ba213e30897c2852f78600a2266cd

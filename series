@@ -1,1 +1,2 @@
 0001-driver_init-load-libva-x11.so-for-any-ABI-version.patch
+0002-Fix-build-with-GCC-10.patch
